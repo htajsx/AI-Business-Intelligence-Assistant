@@ -45,6 +45,8 @@ Hầu hết doanh nghiệp lưu dữ liệu bán hàng, khách hàng và logisti
 
 Ban đầu là đồ án môn *Advanced Topics in Information Technology* tại Đại học Hà Nội (Topic 17), hiện được duy trì như một dự án cá nhân để làm portfolio.
 
+> **Phạm vi demo.** Mục đích của dự án là chạy demo để minh họa kiến trúc và chất lượng của trợ lý, nên **chưa có chức năng xác thực người dùng** (form đăng nhập / đăng xuất, đăng ký, phân quyền). Ứng dụng chạy cục bộ ở chế độ một người dùng và các endpoint API hiện không yêu cầu đăng nhập. Vì vậy **không nên triển khai công khai lên internet** khi chưa bổ sung xác thực, vì ai truy cập được địa chỉ ứng dụng cũng có thể gửi câu hỏi và dùng quota Gemini API của chủ key.
+
 ## Nguyên tắc thiết kế
 
 > **LLM lập kế hoạch và diễn giải. Code là nơi tính toán.**
@@ -375,6 +377,7 @@ Tùy chọn hữu ích: `--model`, `--rpm` (giới hạn tốc độ), `--limit`
 - Toàn bộ schema nằm trong prompt, không mở rộng được tới hàng trăm bảng (khi đó cần truy xuất schema).
 - Bộ test có 12 câu hỏi tiếng Việt (đạt 9/12), mẫu còn nhỏ để kết luận về chất lượng tiếng Việt.
 - Dữ liệu Olist kết thúc ngày 2018-10-17 nên tháng 10/2018 gần như không có đơn đã giao.
+- Chưa có xác thực người dùng (login / logout, đăng ký, phân quyền) vì dự án phục vụ chạy demo; mọi endpoint API hiện mở, chỉ phù hợp chạy cục bộ.
 - Ngoài phạm vi: dữ liệu streaming thời gian thực, quản lý nhiều người dùng/tenant, thao tác ghi vào database và fine-tuning mô hình.
 
 **Lộ trình**
@@ -384,6 +387,7 @@ Tùy chọn hữu ích: `--model`, `--rpm` (giới hạn tốc độ), `--limit`
 - [ ] Nâng execution accuracy lên ≥ 80%: tie-break trong few-shot, không tự thêm bộ lọc, chuẩn hóa định nghĩa nghiệp vụ trong semantic layer
 - [ ] Tránh cạn lượt gọi tool ở các câu hỏi đơn giản
 - [ ] Mở rộng bộ câu hỏi tiếng Việt để đo chính xác hơn
+- [ ] Thêm xác thực người dùng (form đăng nhập / đăng xuất, quản lý phiên) trước khi triển khai công khai
 - [ ] Xuất báo cáo PDF
 - [ ] Tùy chọn triển khai với PostgreSQL
 - [ ] Truy xuất schema cho cơ sở dữ liệu lớn hơn
