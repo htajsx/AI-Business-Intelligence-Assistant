@@ -43,7 +43,7 @@ Hầu hết doanh nghiệp lưu dữ liệu bán hàng, khách hàng và logisti
 
 Ứng dụng còn có **dashboard KPI** và tạo **báo cáo KPI** theo kỳ chỉ với một cú nhấp. Bản demo chạy trên bộ [Olist Brazilian E-Commerce](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) công khai (khoảng 100.000 đơn hàng từ 2016 đến 2018, chín bảng liên quan).
 
-Ban đầu là đồ án môn *Advanced Topics in Information Technology* tại Đại học Hà Nội (Topic 17), hiện được duy trì như một dự án cá nhân để làm portfolio.
+Ban đầu là đồ án môn *Advanced Topics in Information Technology* tại Đại học Hà Nội, hiện được duy trì như một dự án cá nhân để làm portfolio.
 
 > **Phạm vi demo.** Mục đích của dự án là chạy demo để minh họa kiến trúc và chất lượng của trợ lý, nên **chưa có chức năng xác thực người dùng** (form đăng nhập / đăng xuất, đăng ký, phân quyền). Ứng dụng chạy cục bộ ở chế độ một người dùng và các endpoint API hiện không yêu cầu đăng nhập. Vì vậy **không nên triển khai công khai lên internet** khi chưa bổ sung xác thực, vì ai truy cập được địa chỉ ứng dụng cũng có thể gửi câu hỏi và dùng quota Gemini API của chủ key.
 
