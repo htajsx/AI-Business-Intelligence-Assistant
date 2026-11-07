@@ -1,0 +1,100 @@
+﻿id,question,answer,predicted_sql,match_label,insight_quality_1_to_5
+Q002,Total orders delivered in August 2018.,"The total number of orders delivered in August 2018 was **6,351**.","SELECT COUNT(DISTINCT o.order_id) AS total_orders FROM orders o WHERE o.order_status = 'delivered'
+  AND ('2018-08-01 00:00:00' IS NULL OR o.order_purchase_timestamp >= '2018-08-01 00:00:00')
+  AND ('2018-08-31 23:59:59' IS NULL OR o.order_purchase_timestamp <= '2018-08-31 23:59:59')",exact,
+Q005,What is the overall on-time delivery rate?,The overall on-time delivery rate is **91.89%**.,"SELECT ROUND(100.0 * SUM(CASE WHEN order_delivered_customer_date <= order_estimated_delivery_date THEN 1 ELSE 0 END) / COUNT(*), 2) AS on_time_rate FROM orders WHERE order_status = 'delivered'
+  AND order_delivered_customer_date IS NOT NULL
+  AND order_delivered_customer_date >= order_purchase_timestamp
+  AND (NULL IS NULL OR order_purchase_timestamp >= NULL)
+  AND (NULL IS NULL OR order_purchase_timestamp <= NULL)",exact,
+Q009,Tỷ lệ mua hàng lặp lại (repeat purchase rate) trong toàn thời gian là bao nhiêu?,"Tỷ lệ mua hàng lặp lại trong toàn thời gian (từ 01/01/2016 đến 17/10/2018) là **3%**. 
+
+*(Lưu ý: Dữ liệu ghi nhận các tháng có khối lượng giao dịch thấp là 2016-09 và 2016-12).*","WITH customer_orders AS (
+  SELECT c.customer_unique_id, COUNT(DISTINCT o.order_id) AS order_cnt
+  FROM customers c
+  JOIN orders o ON c.customer_id = o.customer_id
+  WHERE o.order_status = 'delivered'
+    AND ('2016-01-01 00:00:00' IS NULL OR o.order_purchase_timestamp >= '2016-01-01 00:00:00')
+    AND ('2018-10-17 23:59:59' IS NULL OR o.order_purchase_timestamp <= '2018-10-17 23:59:59')
+  GROUP BY c.customer_unique_id
+) SELECT ROUND(100.0 * SUM(CASE WHEN order_cnt > 1 THEN 1 ELSE 0 END) / COUNT(*), 2) AS repeat_purchase_rate FROM customer_orders",exact,
+Q010,Monthly revenue trend for 2018.,"Here is the monthly revenue trend for 2018:
+
+- **2018-01**: R$ **924,645.00** (7,069 orders)
+- **2018-02**: R$ **826,437.13** (6,555 orders)
+- **2018-03**: R$ **953,356.25** (7,003 orders)
+- **2018-04**: R$ **973,534.09** (6,798 orders)
+- **2018-05**: R$ **977,544.69** (6,749 orders)
+- **2018-06**: R$ **856,077.86** (6,099 orders)
+- **2018-07**: R$ **867,953.46** (6,159 orders)
+- **2018-08**: R$ **838,576.64** (6,351 orders)","SELECT strftime('%Y-%m', o.order_purchase_timestamp) AS month,
+       ROUND(SUM(oi.price), 2) AS revenue,
+       COUNT(DISTINCT o.order_id) AS orders_count
+FROM orders o JOIN order_items oi ON o.order_id = oi.order_id WHERE o.order_status = 'delivered'
+  AND ('2018-01-01 00:00:00' IS NULL OR o.order_purchase_timestamp >= '2018-01-01 00:00:00')
+  AND ('2018-12-31 23:59:59' IS NULL OR o.order_purchase_timestamp <= '2018-12-31 23:59:59')
+GROUP BY strftime('%Y-%m', o.order_purchase_timestamp) ORDER BY month ASC",exact,
+Q012,Total revenue generated since April 2018.,"The total revenue generated since April 1, 2018 (up to October 17, 2018) is **R$ 4,513,686.74**.","SELECT ROUND(SUM(oi.price), 2) AS total_revenue FROM orders o JOIN order_items oi ON o.order_id = oi.order_id WHERE o.order_status = 'delivered'
+  AND ('2018-04-01 00:00:00' IS NULL OR o.order_purchase_timestamp >= '2018-04-01 00:00:00')
+  AND ('2018-10-17 23:59:59' IS NULL OR o.order_purchase_timestamp <= '2018-10-17 23:59:59')",exact,
+Q014,Identify the top 3 states by revenue in Q2 2018.,"In Q2 2018, the top 3 states by revenue were:
+
+1. **SP** (São Paulo): **R$ 1,156,472.29** (8,878 orders)
+2. **RJ** (Rio de Janeiro): **R$ 343,281.33** (2,330 orders)
+3. **MG** (Minas Gerais): **R$ 317,387.57** (2,243 orders)","SELECT c.customer_state AS state,
+       ROUND(SUM(oi.price), 2) AS revenue,
+       COUNT(DISTINCT o.order_id) AS orders_count
+FROM orders o JOIN customers c ON o.customer_id = c.customer_id JOIN order_items oi ON o.order_id = oi.order_id WHERE o.order_status = 'delivered'
+  AND ('2018-04-01 00:00:00' IS NULL OR o.order_purchase_timestamp >= '2018-04-01 00:00:00')
+  AND ('2018-06-30 23:59:59' IS NULL OR o.order_purchase_timestamp <= '2018-06-30 23:59:59')
+GROUP BY c.customer_state ORDER BY revenue DESC, state ASC LIMIT 3",exact,
+Q015,How many products have more than 5 photos?,"There are **1,817** products that have more than 5 photos.","SELECT COUNT(*) AS product_count FROM products WHERE product_photos_qty > 5
+LIMIT 100",exact,
+Q017,Có bao nhiêu khách hàng sống tại bang SP?,Bang SP có **40.302** khách hàng duy nhất (**41.746** bản ghi khách hàng).,"SELECT COUNT(DISTINCT customer_unique_id) AS unique_customers, COUNT(*) AS total_customer_records FROM customers WHERE customer_state = 'SP'
+LIMIT 100",superset,
+Q019,What is the average product weight by product category name?,"Here are the top 10 product categories with the highest average product weight:
+
+* **furniture_mattress_and_upholstery**: **13,190.00** g
+* **office_furniture**: **12,740.87** g
+* **kitchen_dining_laundry_garden_furniture**: **11,598.56** g
+* **furniture_bedroom**: **9,997.22** g
+* **home_appliances_2**: **9,913.33** g
+* **furniture_living_room**: **8,934.85** g
+* **computers**: **7,995.33** g
+* **industry_commerce_and_business**: **5,929.19** g
+* **agro_industry_and_commerce**: **5,263.41** g
+* **air_conditioning**: **4,459.96** g","SELECT p.product_category_name AS category, ROUND(AVG(p.product_weight_g), 2) AS avg_weight_g FROM products p WHERE p.product_category_name IS NOT NULL GROUP BY p.product_category_name ORDER BY avg_weight_g DESC LIMIT 10",wrong,
+Q028,How much revenue was generated by sellers located in SP state?,"Sellers located in SP state generated a total revenue of **R$ 8,509,511.46**.","SELECT ROUND(SUM(oi.price), 2) AS total_revenue FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN sellers s ON oi.seller_id = s.seller_id WHERE o.order_status = 'delivered' AND s.seller_state = 'SP'
+LIMIT 100",exact,
+Q035,What is the cancellation rate specifically for orders paid by boleto?,"The cancellation rate for orders paid by boleto is **0.48%** (out of **19,784** total boleto orders, **95** were canceled).","WITH order_boleto AS ( SELECT o.order_id, o.order_status FROM orders o JOIN order_payments op ON o.order_id = op.order_id WHERE op.payment_type = 'boleto' GROUP BY o.order_id ) SELECT COUNT(*) AS total_boleto_orders, SUM(CASE WHEN order_status = 'canceled' THEN 1 ELSE 0 END) AS canceled_boleto_orders, ROUND(100.0 * SUM(CASE WHEN order_status = 'canceled' THEN 1 ELSE 0 END) / COUNT(*), 2) AS cancellation_rate_pct FROM order_boleto
+LIMIT 100",superset,
+Q044,Total revenue from orders placed in October 2017.,"The total revenue from orders placed in October 2017 is **R$ 648,247.65**.","SELECT ROUND(SUM(oi.price), 2) AS total_revenue FROM orders o JOIN order_items oi ON o.order_id = oi.order_id WHERE o.order_status = 'delivered'
+  AND ('2017-10-01 00:00:00' IS NULL OR o.order_purchase_timestamp >= '2017-10-01 00:00:00')
+  AND ('2017-10-31 23:59:59' IS NULL OR o.order_purchase_timestamp <= '2017-10-31 23:59:59')",exact,
+Q045,Year-over-year revenue growth for the 'sports_leisure' category (2018 vs 2017).,"In the **sports_leisure** category, revenue was **R$ 435,674.14** in 2017 and reached **R$ 517,166.26** in 2018, representing a year-over-year growth of **18.7%** (note that 2018 data is partial, ending on October 17, 2018).","WITH cat_year AS ( SELECT strftime('%Y', o.order_purchase_timestamp) AS year, ROUND(SUM(oi.price), 2) AS revenue FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id WHERE o.order_status = 'delivered' AND p.product_category_name = 'sports_leisure' AND strftime('%Y', o.order_purchase_timestamp) IN ('2017', '2018') GROUP BY strftime('%Y', o.order_purchase_timestamp) ) SELECT MAX(CASE WHEN year = '2017' THEN revenue END) AS revenue_2017, MAX(CASE WHEN year = '2018' THEN revenue END) AS revenue_2018, ROUND(100.0 * (MAX(CASE WHEN year = '2018' THEN revenue END) - MAX(CASE WHEN year = '2017' THEN revenue END)) / NULLIF(MAX(CASE WHEN year = '2017' THEN revenue END), 0), 2) AS yoy_growth_pct FROM cat_year
+LIMIT 100",superset,
+Q046,Doanh thu trung bình hàng ngày trong tháng 8 năm 2018 là bao nhiêu?,"Doanh thu trung bình hàng ngày trong tháng 8 năm 2018 là **R$ 27,050.86**.","SELECT ROUND(SUM(oi.price) / 31.0, 2) AS avg_daily_revenue FROM orders o JOIN order_items oi ON o.order_id = oi.order_id WHERE o.order_status = 'delivered' AND o.order_purchase_timestamp >= '2018-08-01' AND o.order_purchase_timestamp < '2018-09-01'
+LIMIT 100",wrong,
+Q053,Số đơn hàng đã giao tại bang MG là bao nhiêu?,Số đơn hàng đã giao tại bang MG là **11.354**.,"SELECT COUNT(DISTINCT o.order_id) AS order_count FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE o.order_status = 'delivered' AND c.customer_state = 'MG'
+LIMIT 100",exact,
+Q054,Average review score for sellers based in PR state.,The average review score for sellers based in the PR state is **4.18**.,"WITH latest_review AS ( SELECT order_id, review_score FROM ( SELECT order_id, review_score, ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY review_answer_timestamp DESC, review_id DESC) AS rn FROM order_reviews ) WHERE rn = 1 ) SELECT ROUND(AVG(r.review_score), 2) AS avg_score FROM orders o JOIN latest_review r ON o.order_id = r.order_id WHERE o.order_status = 'delivered' AND EXISTS ( SELECT 1 FROM order_items oi JOIN sellers s ON oi.seller_id = s.seller_id WHERE oi.order_id = o.order_id AND s.seller_state = 'PR' )
+LIMIT 100",wrong,
+Q055,Total freight cost for the 'toys' category in 2018.,"The total freight cost for the toys category in 2018 was **R$ 28,628.53**.","SELECT ROUND(SUM(oi.freight_value), 2) AS total_freight FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id WHERE o.order_status = 'delivered' AND p.product_category_name = 'toys' AND o.order_purchase_timestamp >= '2018-01-01' AND o.order_purchase_timestamp < '2019-01-01'
+LIMIT 100",exact,
+Q056,Top 5 customer cities that bought the most 'auto' products.,"Top 5 customer cities by revenue for 'auto' products:
+
+1. **Sao Paulo** (SP): **R$ 55,982.62** (492 orders)
+2. **Rio de Janeiro** (RJ): **R$ 27,813.33** (181 orders)
+3. **Brasilia** (DF): **R$ 17,159.54** (99 orders)
+4. **Belo Horizonte** (MG): **R$ 15,847.72** (99 orders)
+5. **Salvador** (BA): **R$ 9,807.77** (45 orders)","SELECT c.customer_city AS city, c.customer_state AS state, ROUND(SUM(oi.price), 2) AS revenue, COUNT(DISTINCT o.order_id) AS orders_count FROM orders o JOIN customers c ON o.customer_id = c.customer_id JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id WHERE o.order_status = 'delivered' AND p.product_category_name = 'auto' GROUP BY c.customer_city, c.customer_state ORDER BY revenue DESC LIMIT 5",wrong,
+Q058,Which product category is the worst?,"I interpret ""worst"" as having the lowest average review score, but it could also mean lowest revenue or highest cancellation rate. Would you like to evaluate categories by review score, revenue, or cancellation rate?",,no_sql,
+Q059,Who are our most loyal customers?,"I interpret ""most loyal customers"" as those with the highest number of delivered orders. 
+
+Our top loyal customers by delivered orders and total spending are:
+
+- **Customer `8d50f5eadf50201ccdcedfb9e2ac8455`** (São Paulo, SP): **15** delivered orders, total spent **R$ 714.63**
+- **Customer `3e43e6105506432c953e165fb2acf44c`** (Praia Grande, SP): **9** delivered orders, total spent **R$ 1,000.85**
+- **Customer `1b6c7548a2a1f9037c1fd3ddfed95f33`** (Ituiutaba, MG): **7** delivered orders, total spent **R$ 809.21**
+- **Customer `ca77025e7201e3b30c44b472ff346268`** (Recife, PE): **7** delivered orders, total spent **R$ 806.61**
+- **Customer `6469f99c1f9dfae7733b25662e7f1782`** (Santos, SP): **7** delivered orders, total spent **R$ 664.20**","SELECT c.customer_unique_id, c.customer_state, c.customer_city, COUNT(DISTINCT o.order_id) AS delivered_orders, ROUND(SUM(oi.price), 2) AS total_spent FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id WHERE o.order_status = 'delivered' GROUP BY c.customer_unique_id, c.customer_state, c.customer_city ORDER BY delivered_orders DESC, total_spent DESC LIMIT 5",wrong,

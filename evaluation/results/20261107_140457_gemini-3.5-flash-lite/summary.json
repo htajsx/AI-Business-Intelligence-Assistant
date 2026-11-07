@@ -1,0 +1,192 @@
+{
+  "run": {
+    "model": "gemini-3.5-flash-lite",
+    "rpm": 12,
+    "suite": "questions",
+    "questions": "C:\\Users\\ADMIN\\AI-Business-Intelligence-Assistant\\evaluation\\test_set\\questions.jsonl",
+    "started": "2026-11-07T14:04:57",
+    "question_ids": [
+      "Q001",
+      "Q002",
+      "Q003",
+      "Q004",
+      "Q005",
+      "Q006",
+      "Q007",
+      "Q008",
+      "Q009",
+      "Q010",
+      "Q011",
+      "Q012",
+      "Q013",
+      "Q014",
+      "Q015",
+      "Q016",
+      "Q017",
+      "Q018",
+      "Q019",
+      "Q020",
+      "Q021",
+      "Q022",
+      "Q023",
+      "Q024",
+      "Q025",
+      "Q026",
+      "Q027",
+      "Q028",
+      "Q029",
+      "Q030",
+      "Q031",
+      "Q032",
+      "Q033",
+      "Q034",
+      "Q035",
+      "Q036",
+      "Q037",
+      "Q038",
+      "Q039",
+      "Q040",
+      "Q041",
+      "Q042",
+      "Q043",
+      "Q044",
+      "Q045",
+      "Q046",
+      "Q047",
+      "Q048",
+      "Q049",
+      "Q050",
+      "Q051",
+      "Q052",
+      "Q053",
+      "Q054",
+      "Q055",
+      "Q056",
+      "Q057",
+      "Q058",
+      "Q059",
+      "Q060"
+    ],
+    "adversarial_ids": [],
+    "injection_ids": [],
+    "use_cache": false,
+    "only_failed": false
+  },
+  "counts": {
+    "selected": 60,
+    "evaluated": 60,
+    "infra_error": 0,
+    "gold_error": 0,
+    "labels": {
+      "exact": 35,
+      "superset": 9,
+      "wrong": 13,
+      "no_sql": 3
+    }
+  },
+  "execution_accuracy": {
+    "overall": {
+      "n": 60,
+      "correct": 44,
+      "accuracy": 0.7333333333333333,
+      "exact_only": 0.5833333333333334,
+      "superset": 9
+    },
+    "by_difficulty": {
+      "easy": {
+        "n": 20,
+        "correct": 16,
+        "accuracy": 0.8
+      },
+      "hard": {
+        "n": 15,
+        "correct": 10,
+        "accuracy": 0.6666666666666666
+      },
+      "medium": {
+        "n": 25,
+        "correct": 18,
+        "accuracy": 0.72
+      }
+    },
+    "by_lang": {
+      "en": {
+        "n": 48,
+        "correct": 35,
+        "accuracy": 0.7291666666666666
+      },
+      "vi": {
+        "n": 12,
+        "correct": 9,
+        "accuracy": 0.75
+      }
+    },
+    "by_type": {
+      "ambiguous": {
+        "n": 4,
+        "correct": 2,
+        "accuracy": 0.5
+      },
+      "join": {
+        "n": 14,
+        "correct": 10,
+        "accuracy": 0.7142857142857143
+      },
+      "kpi": {
+        "n": 14,
+        "correct": 14,
+        "accuracy": 1.0
+      },
+      "scoped": {
+        "n": 4,
+        "correct": 2,
+        "accuracy": 0.5
+      },
+      "single_table": {
+        "n": 8,
+        "correct": 6,
+        "accuracy": 0.75
+      },
+      "time_comparison": {
+        "n": 10,
+        "correct": 5,
+        "accuracy": 0.5
+      },
+      "window": {
+        "n": 6,
+        "correct": 5,
+        "accuracy": 0.8333333333333334
+      }
+    }
+  },
+  "valid_sql_rate": 1.0,
+  "sql_generated_rate": 0.95,
+  "avg_tool_errors": 0.016666666666666666,
+  "avg_llm_calls": 2.566666666666667,
+  "total_llm_calls": 154,
+  "latency_ms": {
+    "p50": 5898.5,
+    "p95": 22804.49999999997,
+    "mean": 8877.7
+  },
+  "tool_selection_accuracy": 0.8833333333333333,
+  "numeric_grounding": {
+    "numbers": 425,
+    "grounded": 418,
+    "ratio": 0.9835294117647059,
+    "answers_checked": 57,
+    "answers_fully_grounded": 0.9122807017543859,
+    "target": 0.95,
+    "meets_target": true
+  },
+  "safety": {
+    "adversarial_n": 0,
+    "adversarial_pass_rate": null,
+    "adversarial_block_rate": null,
+    "adversarial_by_category": {},
+    "injection_n": 0,
+    "injection_pass_rate": null,
+    "injection_infra_error": 0,
+    "safety_block_rate": null
+  }
+}
