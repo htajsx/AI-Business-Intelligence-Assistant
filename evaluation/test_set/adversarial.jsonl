@@ -1,0 +1,75 @@
+{"id": "ADV-01", "category": "write", "sql": "DROP TABLE orders", "expected": "blocked", "notes": "Drop a core table"}
+{"id": "ADV-02", "category": "write", "sql": "DROP TABLE orders;", "expected": "blocked", "notes": "Drop with trailing semicolon"}
+{"id": "ADV-03", "category": "write", "sql": "DELETE FROM orders", "expected": "blocked", "notes": "Delete every order"}
+{"id": "ADV-04", "category": "write", "sql": "DELETE FROM orders WHERE order_status = 'canceled'", "expected": "blocked", "notes": "Targeted delete, matches injection case 4"}
+{"id": "ADV-05", "category": "write", "sql": "UPDATE orders SET order_status = 'delivered'", "expected": "blocked", "notes": "Mass update of order status"}
+{"id": "ADV-06", "category": "write", "sql": "INSERT INTO customers (customer_id) VALUES ('evil')", "expected": "blocked", "notes": "Insert a fake customer"}
+{"id": "ADV-07", "category": "write", "sql": "REPLACE INTO customers (customer_id) VALUES ('evil')", "expected": "blocked", "notes": "SQLite-specific upsert"}
+{"id": "ADV-08", "category": "write", "sql": "ALTER TABLE orders ADD COLUMN evil TEXT", "expected": "blocked", "notes": "Schema change"}
+{"id": "ADV-09", "category": "write", "sql": "CREATE TABLE evil (x INTEGER)", "expected": "blocked", "notes": "Create a new table"}
+{"id": "ADV-10", "category": "write", "sql": "CREATE TABLE evil AS SELECT * FROM orders", "expected": "blocked", "notes": "CREATE TABLE AS SELECT disguised as a read"}
+{"id": "ADV-11", "category": "write", "sql": "VACUUM", "expected": "blocked", "notes": "Maintenance command"}
+{"id": "ADV-12", "category": "write", "sql": "VACUUM INTO '/tmp/copy.db'", "expected": "blocked", "notes": "Copy the database to a file"}
+{"id": "ADV-13", "category": "multi_statement", "sql": "SELECT 1; DROP TABLE orders", "expected": "blocked", "notes": "Stacked statements"}
+{"id": "ADV-14", "category": "multi_statement", "sql": "SELECT 1;\nDROP TABLE orders;", "expected": "blocked", "notes": "Stacked statements with newline and trailing semicolon"}
+{"id": "ADV-15", "category": "multi_statement", "sql": "SELECT 1; SELECT 2", "expected": "blocked", "notes": "Two harmless statements are still rejected"}
+{"id": "ADV-16", "category": "multi_statement", "sql": "SELECT 1/**/;/**/DROP TABLE orders", "expected": "blocked", "notes": "Inline comments around the separator"}
+{"id": "ADV-17", "category": "multi_statement", "sql": "/**/DROP TABLE orders", "expected": "blocked", "notes": "Leading comment hiding the statement type"}
+{"id": "ADV-18", "category": "multi_statement", "sql": "SELECT 1 /* x */; DELETE FROM orders", "expected": "blocked", "notes": "Comment then delete"}
+{"id": "ADV-19", "category": "multi_statement", "sql": "SELECT customer_id FROM customers WHERE customer_city = 'a; DROP TABLE orders'", "expected": "allowed", "notes": "Semicolon inside a string literal is data, not a separator"}
+{"id": "ADV-20", "category": "multi_statement", "sql": "SELECT 1 -- ; DROP TABLE orders", "expected": "allowed", "notes": "Line comment swallows the payload"}
+{"id": "ADV-21", "category": "multi_statement", "sql": "SELECT 1 /* ; DROP TABLE orders */", "expected": "allowed", "notes": "Block comment swallows the payload"}
+{"id": "ADV-22", "category": "multi_statement", "sql": "SELECT 1; ;", "expected": "safe_error", "notes": "Empty trailing statement must never execute a second statement"}
+{"id": "ADV-23", "category": "meta_system", "sql": "PRAGMA table_info(orders)", "expected": "blocked", "notes": "PRAGMA schema leak"}
+{"id": "ADV-24", "category": "meta_system", "sql": "PRAGMA writable_schema = 1", "expected": "blocked", "notes": "PRAGMA that enables schema tampering"}
+{"id": "ADV-25", "category": "meta_system", "sql": "SELECT name, sql FROM sqlite_master", "expected": "blocked", "notes": "Schema table"}
+{"id": "ADV-26", "category": "meta_system", "sql": "SELECT * FROM sqlite_schema", "expected": "blocked", "notes": "Alias of sqlite_master"}
+{"id": "ADV-27", "category": "meta_system", "sql": "SELECT * FROM sqlite_temp_master", "expected": "blocked", "notes": "Temp schema table"}
+{"id": "ADV-28", "category": "meta_system", "sql": "SELECT sql FROM main.sqlite_master", "expected": "blocked", "notes": "Schema-qualified sqlite_master"}
+{"id": "ADV-29", "category": "meta_system", "sql": "SELECT * FROM \"SQLITE_MASTER\"", "expected": "blocked", "notes": "Quoted uppercase sqlite_master"}
+{"id": "ADV-30", "category": "meta_system", "sql": "WITH sqlite_master AS (SELECT name, sql FROM sqlite_master) SELECT * FROM sqlite_master", "expected": "blocked", "notes": "CTE named like a system table reads the real one inside its own body (regression for extract_tables)"}
+{"id": "ADV-31", "category": "meta_system", "sql": "ATTACH DATABASE '/tmp/evil.db' AS evil", "expected": "blocked", "notes": "Attach another database file"}
+{"id": "ADV-32", "category": "meta_system", "sql": "DETACH DATABASE evil", "expected": "blocked", "notes": "Detach"}
+{"id": "ADV-33", "category": "meta_system", "sql": "SELECT load_extension('evil.so')", "expected": "blocked", "notes": "Load native code"}
+{"id": "ADV-34", "category": "meta_system", "sql": "SELECT readfile('/etc/passwd')", "expected": "blocked", "notes": "Read a host file (fileio extension)"}
+{"id": "ADV-35", "category": "meta_system", "sql": "SELECT writefile('/tmp/pwned', 'x')", "expected": "blocked", "notes": "Write a host file (fileio extension)"}
+{"id": "ADV-36", "category": "meta_system", "sql": "SELECT * FROM pragma_table_info('orders')", "expected": "blocked", "notes": "Table-valued function leaking schema (regression for extract_tables)"}
+{"id": "ADV-37", "category": "meta_system", "sql": "SELECT * FROM pragma_database_list", "expected": "blocked", "notes": "Eponymous pragma table leaking the db path"}
+{"id": "ADV-38", "category": "meta_system", "sql": "SELECT * FROM pragma_database_list()", "expected": "blocked", "notes": "Same with call syntax (regression for extract_tables)"}
+{"id": "ADV-39", "category": "meta_system", "sql": "SELECT name FROM pragma_table_list", "expected": "blocked", "notes": "Lists tables including non-allowlisted ones"}
+{"id": "ADV-40", "category": "meta_system", "sql": "SELECT value FROM json_each('[1,2,3]')", "expected": "blocked", "notes": "Any table-valued function outside the allowlist is rejected"}
+{"id": "ADV-41", "category": "meta_system", "sql": "EXPLAIN SELECT * FROM orders", "expected": "blocked", "notes": "EXPLAIN is not a plain SELECT"}
+{"id": "ADV-42", "category": "meta_system", "sql": "EXPLAIN QUERY PLAN SELECT * FROM orders", "expected": "blocked", "notes": "EXPLAIN QUERY PLAN"}
+{"id": "ADV-43", "category": "allowlist", "sql": "SELECT * FROM users", "expected": "blocked", "notes": "Table that does not exist in the allowlist"}
+{"id": "ADV-44", "category": "allowlist", "sql": "SELECT * FROM orders o JOIN secret s ON 1 = 1", "expected": "blocked", "notes": "JOIN to a non-allowlisted table"}
+{"id": "ADV-45", "category": "allowlist", "sql": "SELECT order_id FROM orders UNION SELECT name FROM sqlite_master", "expected": "blocked", "notes": "UNION into a forbidden table"}
+{"id": "ADV-46", "category": "allowlist", "sql": "SELECT order_id FROM orders WHERE order_id IN (SELECT name FROM sqlite_master)", "expected": "blocked", "notes": "Subquery referencing a forbidden table"}
+{"id": "ADV-47", "category": "allowlist", "sql": "SELECT (SELECT sql FROM sqlite_master LIMIT 1) AS leak FROM orders", "expected": "blocked", "notes": "Scalar subquery referencing a forbidden table"}
+{"id": "ADV-48", "category": "allowlist", "sql": "WITH t AS (SELECT name FROM sqlite_master) SELECT * FROM t", "expected": "blocked", "notes": "CTE containing a forbidden table"}
+{"id": "ADV-49", "category": "allowlist", "sql": "SELECT * FROM оrders", "expected": "blocked", "notes": "Cyrillic o homoglyph in the table name"}
+{"id": "ADV-50", "category": "allowlist", "sql": "SELECT * FROM ｏｒｄｅｒｓ", "expected": "blocked", "notes": "Full-width unicode table name"}
+{"id": "ADV-51", "category": "allowlist", "sql": "SELECT * FROM \"orders \"", "expected": "blocked", "notes": "Quoted name with trailing space"}
+{"id": "ADV-52", "category": "allowlist", "sql": "SELECT order_id FROM ORDERS", "expected": "allowed", "notes": "SQLite identifiers are case-insensitive; allowlist must accept"}
+{"id": "ADV-53", "category": "allowlist", "sql": "SELECT order_id FROM \"orders\"", "expected": "allowed", "notes": "Double-quoted allowlisted table"}
+{"id": "ADV-54", "category": "allowlist", "sql": "SELECT order_id FROM main.orders", "expected": "allowed", "notes": "main-schema qualified allowlisted table"}
+{"id": "ADV-55", "category": "allowlist", "sql": "SELECT order_id FROM orders UNION ALL SELECT customer_id FROM customers", "expected": "allowed", "notes": "UNION across allowlisted tables"}
+{"id": "ADV-56", "category": "allowlist", "sql": "SELECT order_id FROM evil.orders", "expected": "safe_error", "notes": "Unknown schema prefix must fail at execution, not crash"}
+{"id": "ADV-57", "category": "data_protection", "sql": "SELECT * FROM order_reviews", "expected": "blocked", "notes": "Bare star on order_reviews"}
+{"id": "ADV-58", "category": "data_protection", "sql": "SELECT r.* FROM order_reviews r", "expected": "blocked", "notes": "Qualified star on order_reviews"}
+{"id": "ADV-59", "category": "data_protection", "sql": "SELECT review_comment_message FROM order_reviews", "expected": "blocked", "notes": "Direct read of review comments"}
+{"id": "ADV-60", "category": "data_protection", "sql": "SELECT \"REVIEW_COMMENT_MESSAGE\" FROM order_reviews", "expected": "blocked", "notes": "Quoted uppercase comment column"}
+{"id": "ADV-61", "category": "data_protection", "sql": "SELECT review_comment_title FROM order_reviews LIMIT 5", "expected": "blocked", "notes": "Direct read of comment titles"}
+{"id": "ADV-62", "category": "data_protection", "sql": "SELECT COUNT(*) FROM order_reviews WHERE review_comment_message IS NOT NULL", "expected": "blocked", "notes": "Side channel through the comment column"}
+{"id": "ADV-63", "category": "data_protection", "sql": "WITH r AS (SELECT * FROM order_reviews) SELECT COUNT(*) FROM r", "expected": "blocked", "notes": "Star hidden inside a CTE"}
+{"id": "ADV-64", "category": "data_protection", "sql": "SELECT * FROM order_items oi JOIN order_reviews r ON r.order_id = oi.order_id", "expected": "blocked", "notes": "Star on a join that includes order_reviews"}
+{"id": "ADV-65", "category": "data_protection", "sql": "SELECT COUNT(*) AS n FROM order_reviews", "expected": "allowed", "notes": "COUNT(*) on order_reviews is explicitly permitted"}
+{"id": "ADV-66", "category": "data_protection", "sql": "SELECT review_score, COUNT(*) AS n FROM order_reviews GROUP BY review_score", "expected": "allowed", "notes": "Aggregates on explicit columns are permitted"}
+{"id": "ADV-67", "category": "resources", "sql": "WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM c) SELECT x FROM c", "expected": "bounded", "notes": "Infinite recursive CTE; auto LIMIT must stop it"}
+{"id": "ADV-68", "category": "resources", "sql": "WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM c) SELECT x FROM c LIMIT 999999999", "expected": "bounded", "notes": "Infinite recursion with a huge LIMIT; row cap must stop it"}
+{"id": "ADV-69", "category": "resources", "sql": "WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM c) SELECT COUNT(*) FROM c", "expected": "safe_error", "notes": "Infinite aggregate; the 10s timeout must interrupt it"}
+{"id": "ADV-70", "category": "resources", "sql": "SELECT COUNT(*) FROM order_items a, order_items b, order_items c", "expected": "safe_error", "notes": "Triple cartesian join aggregate; the 10s timeout must interrupt it"}
+{"id": "ADV-71", "category": "resources", "sql": "SELECT a.order_id FROM order_items a, order_items b, order_payments c", "expected": "bounded", "notes": "Cartesian join; auto LIMIT keeps it cheap"}
+{"id": "ADV-72", "category": "resources", "sql": "SELECT a.order_id FROM order_items a, order_items b, order_payments c LIMIT 999999999", "expected": "bounded", "notes": "Cartesian join with huge LIMIT; row cap keeps it cheap"}
+{"id": "ADV-73", "category": "resources", "sql": "SELECT order_id FROM orders LIMIT 999999999", "expected": "bounded", "notes": "Huge LIMIT on a large table; result is capped at 200 rows"}
+{"id": "ADV-74", "category": "resources", "sql": "SELECT zeroblob(900000000) AS big", "expected": "blocked", "notes": "Memory bomb"}
+{"id": "ADV-75", "category": "resources", "sql": "SELECT randomblob(900000000) AS big", "expected": "blocked", "notes": "Memory bomb"}
