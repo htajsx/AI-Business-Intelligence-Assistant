@@ -1,0 +1,8 @@
+fastapi[standard]
+pydantic
+google-genai
+pandas
+sqlglot
+pytest
+python-dotenv
+pyyaml
